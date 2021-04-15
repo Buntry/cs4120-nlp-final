@@ -1,0 +1,16 @@
+# folders
+dataset
+models
+saved
+wandb
+tokenizer
+
+# data
+AtomicCards.json
+
+# python
+__pycache__
+
+# editors
+.vscode
+.idea

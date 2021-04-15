@@ -1,0 +1,18 @@
+{
+    "train_file": "./dataset/cards_train.txt",
+    "validation_file": "./dataset/cards_val.txt",
+    "model_name": "./models/trained_transformer0",
+    "tokenizer_name": "./models/trained_transformer0",
+    "model_type": "roberta",
+    "overwrite_output_dir": true,
+    "validation_split_percentage": 5,
+    "line_by_line": true,
+    "pad_to_max_length": true,
+    "do_train": true,
+    "do_eval": true,
+    "max_seq_length": 128,
+    "num_train_epochs": 10,
+    "fp16": true,
+    "save_total_limit": 3,
+    "output_dir": "./models/transformer1"
+}
