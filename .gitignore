@@ -3,6 +3,7 @@ dataset
 models
 saved
 wandb
+runs
 tokenizer
 
 # data
