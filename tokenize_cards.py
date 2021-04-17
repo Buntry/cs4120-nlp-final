@@ -3,14 +3,13 @@ from tokenizers.pre_tokenizers import Whitespace
 
 from constants import *
 
-if __name__ == "__main__":
+def tokenize_cards(files=['./dataset/cards_train.txt', './dataset/cards_val.txt'], output_dir='./tokenizer'):
     tokenizer = ByteLevelBPETokenizer()
     tokenizer.pre_tokenizer = Whitespace()
 
-    tokenizer.train(
-        files=['./dataset/cards_train.txt', './dataset/cards_val.txt'],
-        special_tokens=SPECIAL_TOKENS
-    )
+    tokenizer.train(files=files, special_tokens=SPECIAL_TOKENS + OTHER_TOKENS)
+    tokenizer.save_model(output_dir)
 
-    tokenizer.save_model('./tokenizer')
+if __name__ == "__main__":
+    tokenize_cards()
 

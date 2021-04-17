@@ -1,40 +1,50 @@
 from tokenizers import ByteLevelBPETokenizer
+from tokenizers.pre_tokenizers import Whitespace
 from keras.layers import Embedding, LSTM, Bidirectional, Dropout, Dense
+from keras.callbacks import CSVLogger
 from keras import Sequential
+from callbacks import LogBatchLoss
 from card_dataset import CardDataset
 from card_sequence import CardSequence
+from load_tokenizer import load_tokenizer
 from constants import *
+import numpy as np
 
-model_name = "lstm0"
-num_epochs = 5
+model_name = "lstm-mtg"
+num_epochs = 25
 dropout = 0.3
 verbose = True
+seq_len = 10
+n_hidden = 30
+n_embed = 248
 
 # load tokenizer
-tokenizer = ByteLevelBPETokenizer('./tokenizer/vocab.json', './tokenizer/merges.txt')
+tokenizer = load_tokenizer()
 V = tokenizer.get_vocab_size()
 
 # load cards
 cardset = CardDataset('./dataset/cards_train.txt', tokenizer, to_tensor=False)
-max_seq_len = max(len(cardset[idx]) for idx in range(len(cardset)))
 
-# enable padding
-tokenizer.enable_padding(direction='left', pad_token=CARD_PAD, pad_to_multiple_of=max_seq_len)
+# pad input sequences
+max_seq_len = max(len(cardset[i].ids) for i in range(len(cardset)))
+tokenizer.enable_padding(direction="left", pad_token=CARD_PAD, length=max_seq_len)
 
-# get training data
-card_sequence = CardSequence(cardset, V, batch_size=12)
+# data loader
+card_sequence = CardSequence(cardset, V, seq_len=seq_len, max_seq_len=max_seq_len)
 
 # build model
 model = Sequential()
-model.add(Embedding(tokenizer.get_vocab_size(), 128, input_length=max_seq_len))
-model.add(Bidirectional(LSTM(10, return_sequences=True)))
-model.add(Bidirectional(LSTM(10, return_sequences=True)))
+model.add(Embedding(V, n_embed, input_length=seq_len, mask_zero=True))
+model.add(Bidirectional(LSTM(n_hidden, return_sequences=True)))
+model.add(Bidirectional(LSTM(n_hidden)))
 model.add(Dropout(dropout))
-model.add(Dense(tokenizer.get_vocab_size(), activation='softmax'))
+model.add(Dense(V, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.summary()
 
 # train the model
-model.fit(card_sequence, epochs=num_epochs, verbose=verbose)
+model.fit(card_sequence, epochs=num_epochs, verbose=verbose, callbacks=[
+    LogBatchLoss(f"./saved/{model_name}.log.csv", log_every_x_batches=500)
+])
 model.save(f"./saved/{model_name}")

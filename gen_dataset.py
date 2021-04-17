@@ -22,12 +22,23 @@ def passes_restrictions(card_info):
 def card_info_to_card_doc(card_name, card_info):
     card_pieces = list()
     
-    card_pieces.append(CARD_BEGIN)  
-    card_text = card_info['text']
-    card_text = card_text.lower()
-    card_text = re.sub(card_name.lower(), CARDNAME, card_text)
-    card_text = re.sub("\n", f" {LF} ", card_text)
+    card_pieces.append(CARD_BEGIN)
+    
+    if not 'text' in card_info:
+        card_text = ""
+    else:
+        card_text = card_info['text']
+        card_text = card_text.lower() # lowercase text
+        card_text = re.sub(card_name.lower(), CARDNAME, card_text) # re-sub in special token 
+        card_text = re.sub("\n", f" {LF} ", card_text) # replace line feed
+        card_text = re.sub("—", f" {EM} ", card_text) # replace em dash
+        card_text = re.sub("\(.+\)", "", card_text) # replacce reminder text
+        card_text = re.sub(":", " :", card_text) # space out activation symbol
+        card_text = re.sub("}{", "} {", card_text) # space out costs
+        card_text = re.sub("\.|,|\"|'", "", card_text) # remove punctuation
+
     card_pieces.append(card_text)
+    
     card_pieces.append(CARD_END + "\n")
     
     return " ".join(card_pieces)

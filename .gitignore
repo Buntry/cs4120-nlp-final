@@ -5,6 +5,7 @@ saved
 wandb
 runs
 tokenizer
+logs
 
 # data
 AtomicCards.json
