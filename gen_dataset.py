@@ -58,8 +58,8 @@ def gen_card_docs(card_json_path):
     return card_docs
 
 # write card_docs to file
-def main(card_json_path, train_path, val_path):
-    card_docs = gen_card_docs(card_json_path)
+def gen_dataset(card_json_path, train_path, val_path, n_cards=1_000_000):
+    card_docs = gen_card_docs(card_json_path)[:n_cards]
     card_train, card_val = train_test_split(card_docs, test_size=0.2)
     
     def write(path, cards):
@@ -72,4 +72,4 @@ def main(card_json_path, train_path, val_path):
     
 
 if __name__ == "__main__":
-    main("./AtomicCards.json", "./dataset/cards_train.txt", "./dataset/cards_val.txt")
+    gen_dataset("./AtomicCards.json", "./dataset/cards_train.txt", "./dataset/cards_val.txt")
