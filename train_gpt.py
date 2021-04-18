@@ -5,44 +5,51 @@ from load_tokenizer import load_tokenizer
 from card_dataset import CardDataset
 from constants import *
 
-model_name = "gpt-mtg"
+# Trainer for GPT2
 
-tokenizer = load_tokenizer(gpt=True)
+class GPT2Trainer:
+    def __init__(self, model_name, train_path, n_positions=512, n_ctx=512, n_embd=128, n_layer=8, n_head=8):
+        self.model_name = model_name
+        self.tokenizer = load_tokenizer(gpt=True)
+        self.train_path = train_path
 
-config = GPT2Config(
-    vocab_size=len(tokenizer),
-    n_positions=512,
-    n_ctx=512,
-    n_embd=128,
-    n_layer=8,
-    n_head=8
-)
+        self.config = GPT2Config(
+            vocab_size=len(self.tokenizer),
+            n_positions=n_positions,
+            n_ctx=n_ctx,
+            n_embd=n_embd,
+            n_layer=n_layer,
+            n_head=n_head
+        )
 
-model = GPT2LMHeadModel(config)
+        self.model = GPT2LMHeadModel(self.config)
 
-print(f"Num Parameters: {model.num_parameters()}")
+    # trains and saves a gpt2 trainer
+    def train(self, num_epochs=500, batch_size=32, save_total_limit=2, save_steps=500, logging_steps=100):
+        training_args = TrainingArguments(
+            output_dir=f"./saved/{self.model_name}",
+            overwrite_output_dir=True,
+            num_train_epochs=num_epochs,
+            per_device_train_batch_size=batch_size,
+            save_steps=save_steps,
+            save_total_limit=save_total_limit,
+            prediction_loss_only=True,
+            logging_steps=logging_steps
+        )
 
-training_args = TrainingArguments(
-    output_dir=f"./saved/{model_name}",
-    overwrite_output_dir=True,
-    num_train_epochs=500,
-    per_device_train_batch_size=32,
-    save_steps=500,
-    save_total_limit=2,
-    prediction_loss_only=True,
-    logging_steps=100
-)
+        data_collator = DataCollatorForLanguageModeling(tokenizer=self.tokenizer, mlm=True, mlm_probability=MASK_PROB)
+        card_trainset = CardDataset(self.train_path, self.tokenizer, to_tensor=True)
+        trainer = Trainer(
+            model=self.model,
+            args=training_args,
+            data_collator=data_collator,
+            train_dataset=card_trainset
+        )
 
-data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=True, mlm_probability=MASK_PROB)
+        self.tokenizer.save_pretrained(f"./saved/{self.model_name}")
+        trainer.train()
+        trainer.save_model(f"./saved/{self.model_name}")
 
-card_trainset = CardDataset('./dataset/cards_train.txt', tokenizer, to_tensor=True)
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    data_collator=data_collator,
-    train_dataset=card_trainset
-)
-
-tokenizer.save_pretrained(f"./saved/{model_name}")
-trainer.train()
-trainer.save_model(f"./saved/{model_name}")
+if __name__ == "__main__":
+    trainer = GPT2Trainer("gpt-mtg", "./dataset/cards_train.txt")
+    trainer.train()
