@@ -1,6 +1,8 @@
+import re
 from transformers import pipeline
 from transformers import GPT2LMHeadModel
 from load_tokenizer import load_tokenizer
+from constants import CARD_END, CARD_PAD
 
 class GPTGenerator:
     def __init__(self, model_name):
@@ -11,6 +13,7 @@ class GPTGenerator:
             f"./saved/{self.model_name}", 
             pad_token_id=self.tokenizer.eos_token_id
         )
+        self.model.resize_token_embeddings(len(self.tokenizer))
 
         self.generator = pipeline("text-generation", model=self.model, tokenizer=self.tokenizer)
     
@@ -21,6 +24,22 @@ class GPTGenerator:
 
         return self.tokenizer.convert_ids_to_tokens(predicted_id)
 
+    def generate_sentence(self, prompt, use_sampling=False, max_len=200):
+        if not prompt:
+            prompt = CARD_PAD
+
+        prediction = self.generator(prompt, do_sample=use_sampling, max_length=max_len)[0]['generated_text']
+        
+        # remove padding tokens
+        prediction = re.sub(CARD_PAD, "", prediction)
+
+        # optionally slice off extra card_end items
+        if CARD_END in prediction:
+            return prediction[:prediction.find(CARD_END) + len(CARD_END)]
+        else:
+            return prediction
+
+
 if __name__ == "__main__":
     model_name = "gpt-mtg"
 
@@ -28,5 +47,4 @@ if __name__ == "__main__":
     prompt = "<s> when CARDNAME enters the battlefield "
     print(f"Input prompt: \"{prompt}\"")
 
-    prompt += generator.generate(prompt)
-    print(f"Output prompt: \"{prompt}\"")
+    print(f"Output prompt: \"{generator.generate_sentence(prompt, use_sampling=True)}\"")

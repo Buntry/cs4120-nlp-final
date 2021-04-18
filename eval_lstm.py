@@ -23,6 +23,17 @@ class LSTMGenerator:
             sampled_id = np.random.choice(np.arange(self.tokenizer.get_vocab_size()), p=prediction)
             return self.tokenizer.id_to_token(sampled_id)
 
+    def generate_sentence(self, prompt, use_sampling=False, max_len=100):
+        if not prompt:
+            prompt = CARD_BEGIN
+
+        for _ in range(max_len):
+            token = self.generate(prompt, use_sampling)
+            prompt += " " + token
+            if token == CARD_END:
+                break
+        return prompt
+
 if __name__ == "__main__":
     model_name = "lstm-mtg"
     generator = LSTMGenerator(model_name)
@@ -30,5 +41,4 @@ if __name__ == "__main__":
     prompt = "<s> when CARDNAME enters the battlefield"
     print(f"Input prompt: \"{prompt}\"")
 
-    prompt += " " + generator.generate(prompt)
-    print(f"Output prompt: \"{prompt}\"")
+    print(f"Output prompt: \"{generator.generate_sentence(prompt, use_sampling=True, max_len=100)}\"")
