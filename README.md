@@ -7,7 +7,7 @@ text.
 
 You can walkthrough this project by interacting with the Google Colab.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1l7zYGcKk53F1A0BPj9CWG2cIrHfHtBl5?usp=sharing]
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Buntry/cs4120-nlp-final/blob/main/MagicTheGenerating.ipynb)
 
 You can also find the paper [here](https://github.com/Buntry/cs4120-nlp-final/blob/main/nlp-report.pdf).
 
